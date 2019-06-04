@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <zconf.h>
 #include <sys/stat.h>
 
 #include "lockfile.h"

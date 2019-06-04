@@ -7,7 +7,8 @@
 #ifndef LOCKFILE_PROCUTILS_H
 #define LOCKFILE_PROCUTILS_H
 
-#include <zconf.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int verify_process_id(pid_t id);
 

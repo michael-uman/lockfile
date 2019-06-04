@@ -58,6 +58,11 @@ void test_serialport() {
     }
 }
 
+/**
+ * Test app main entry point
+ * @return
+ */
+
 int main() {
     test_lockfile();
 
