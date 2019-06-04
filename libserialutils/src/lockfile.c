@@ -1,6 +1,9 @@
-//
-// Created by developer on 6/3/19.
-//
+/**
+ * @file    lockfile.c
+ * @author  Michael Uman
+ * @date    June 4, 2019
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -9,6 +12,7 @@
 #include <sys/stat.h>
 
 #include "lockfile.h"
+#include "procutils.h"
 
 //#define VERBOSE_DEBUG
 
@@ -31,6 +35,38 @@ static int exists(const char * filepath) {
 #ifdef VERBOSE_DEBUG
         fprintf(stderr, "%s file exists\n", filepath);
 #endif
+        result = 0;
+    }
+
+    return result;
+}
+
+static pid_t get_lockfile_pid(const char * filepath) {
+    FILE * lockFH = NULL;
+    pid_t result = -1;
+
+    lockFH = fopen(filepath, "r");
+    if (lockFH != NULL) {
+        fscanf(lockFH, "%10d", &result);
+        fclose(lockFH);
+    }
+
+    return result;
+}
+
+static int create_lockfile(const char * lockfile_name) {
+    pid_t   pid = getpid(); // get process id
+    FILE *  fh  = NULL;
+    int     result = -1;
+
+#ifdef VERBOSE_DEBUG
+    fprintf(stderr, "Writing pid %d to lockfile %s\n", pid, lockfile_name);
+#endif
+    /* Write our process id to the lock file */
+    fh = fopen(lockfile_name, "w");
+    if (fh != NULL) {
+        fprintf(fh, "%10d\n", pid);
+        fclose(fh);
         result = 0;
     }
 
@@ -84,21 +120,23 @@ int lock_filename(const char * filename) {
     lockfile_name = get_lockfile_name(filename, lock_file_buffer, 32);
     if (lockfile_name != NULL) {
         if (exists(lockfile_name) != 0) {
-            pid_t pid = getpid(); // get process id
-            FILE *fh = NULL;
-#ifdef VERBOSE_DEBUG
-            fprintf(stderr, "Writing pid %d to lockfile %s\n", pid, lockfile_name);
-#endif
-            /* Write our process id to the lock file */
-            fh = fopen(lockfile_name, "w");
-            fprintf(fh, "%10d\n", pid);
-            fclose(fh);
-
+            create_lockfile(lockfile_name);
             result = 0;
         } else {
+            /* If lockfile exists, check if it is stale... */
+            pid_t owner_pid = get_lockfile_pid(lockfile_name);
+
+            /* If the process is not found assume the lock is stale... */
+            if (verify_process_id(owner_pid) != 0) {
+                fprintf(stderr, "Removing stale lock file...\n");
+                unlink(lockfile_name);
+                create_lockfile(lockfile_name);
+                result = 0;
+            } else {
 #ifdef VERBOSE_DEBUG
-            fprintf(stderr, "LOCKFILE exists\n");
+                fprintf(stderr, "LOCKFILE exists\n");
 #endif
+            }
         }
     }
 
