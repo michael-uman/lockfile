@@ -3,4 +3,4 @@ project(lockfile C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(lockfile main.c lockfile.c lockfile.h)
+add_executable(lockfile main.c lockfile.c lockfile.h serialport.c serialport.h)

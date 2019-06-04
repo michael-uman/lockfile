@@ -1,36 +1,31 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include "lockfile.h"
-#include "serialport.h"
+# README
 
-const char * serialDevice = "/dev/ttyACM0";
+## Overview
 
-int myerrno = 0; // local errno value
+This repository contains code to maintain a Linux standard lock file as specified @ https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s09.html.
 
-/**
- * Test lock file operation.
- */
-void test_lockfile() {
-    printf("Verifying lockfile generation for %s\n", serialDevice);
+## Functions
 
-    if (lock_filename(serialDevice) == 0) {
-        printf("Lock succeeded!\n");
+The `lockfile.h` header exposes the following functions:
 
-        sleep(20);
+```
+const char *    get_lockfile_name(const char * filename, char * lf_storage, size_t lf_len);
+int             lock_filename(const char * filename);
+int             unlock_filename(const char * filename);
+```
 
-        if (unlock_filename(serialDevice) == 0) {
-            printf("Unlock succeeded!\n");
-        } else {
-            printf("Unlock failed!\n");
-        }
-    } else {
-        printf("Lock failed!\n");
-    }
+The `serialport.h` header exposes the following functions:
 
-    return;
-}
+```
+int serialport_open(const char *serial_device_name, int baud_rate, int * user_errno);
+int serialport_close(int fdes, int * user_errno);
+```
 
+## Example
+
+See the `main.c` file for example usage.
+
+```
 /**
  * Test serial port operation.
  */
@@ -57,11 +52,4 @@ void test_serialport() {
         printf("Unable to open serial port [errno = %d (%s)]\n", myerrno, strerror(myerrno));
     }
 }
-
-int main() {
-    test_lockfile();
-
-    test_serialport();
-
-    return 0;
-}
+```

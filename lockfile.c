@@ -10,6 +10,8 @@
 
 #include "lockfile.h"
 
+//#define VERBOSE_DEBUG
+
 static const char * lockPrefix = "/var/lock/LCK..";
 
 
@@ -26,7 +28,9 @@ static int exists(const char * filepath) {
     memset(&file_stat, 0, sizeof(file_stat));
 
     if (stat(filepath, &file_stat) == 0) {
+#ifdef VERBOSE_DEBUG
         fprintf(stderr, "%s file exists\n", filepath);
+#endif
         result = 0;
     }
 
@@ -37,10 +41,10 @@ static int exists(const char * filepath) {
  * Generate the lockfile name from the resource path...
  *
  * Example: filepath = /dev/ttyUSB0 -> lockfile_name = /var/lock/LCK..ttyUSB0
- * @param filepath
- * @param lf_storage
- * @param lf_len
- * @return
+ * @param filepath      Path to file to create lockfile for.
+ * @param lf_storage    Buffer to store resulting lockfile name.
+ * @param lf_len        Max length of lockfile name buffer
+ * @return              Pointer to lockfile name, or NULL on failure.
  */
 const char * get_lockfile_name(const char * filepath, char * lf_storage, size_t lf_len) {
     char * filename = NULL;
@@ -51,7 +55,9 @@ const char * get_lockfile_name(const char * filepath, char * lf_storage, size_t 
     }
 
     if (lf_len < (strlen(lockPrefix) + strlen(filename) + 1)) {
+#ifdef VERBOSE_DEBUG
         fprintf(stderr, "ERROR: Insufficient space to store lockfile name\n");
+#endif
         return NULL;
     }
 
@@ -80,17 +86,19 @@ int lock_filename(const char * filename) {
         if (exists(lockfile_name) != 0) {
             pid_t pid = getpid(); // get process id
             FILE *fh = NULL;
-
+#ifdef VERBOSE_DEBUG
             fprintf(stderr, "Writing pid %d to lockfile %s\n", pid, lockfile_name);
-
+#endif
             /* Write our process id to the lock file */
             fh = fopen(lockfile_name, "w");
-            fprintf(fh, "%d", pid);
+            fprintf(fh, "%10d\n", pid);
             fclose(fh);
 
             result = 0;
         } else {
+#ifdef VERBOSE_DEBUG
             fprintf(stderr, "LOCKFILE exists\n");
+#endif
         }
     }
 
@@ -115,7 +123,9 @@ int unlock_filename(const char * filename) {
                 result = 0;
             }
         } else {
+#ifdef VERBOSE_DEBUG
             fprintf(stderr, "LOCKFILE does not exist\n");
+#endif
         }
     }
 
