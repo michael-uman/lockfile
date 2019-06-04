@@ -1,0 +1,11 @@
+*.out
+*.make
+*.cmake
+*.bin
+Makefile*
+*.log
+*.c.o
+*.xml
+*.iml
+*.a
+cmake-*/
