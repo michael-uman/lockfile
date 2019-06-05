@@ -11,7 +11,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#include "procutils.h"
+#include "siot_procutils.h"
 
 static const char * procFs = "/proc/";
 
@@ -37,7 +37,7 @@ static int is_numeric(const char * str) {
  * @param id    pid to look for
  * @return Zero if pid exists, -1 otherwise.
  */
-int verify_process_id(pid_t id) {
+int siot_verify_process_id(pid_t id) {
     DIR * dir = NULL;
     struct dirent * dirEntry = NULL;
     int result = -1;

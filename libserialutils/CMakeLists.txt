@@ -1,11 +1,11 @@
 project(serialutils)
 
-add_library(${PROJECT_NAME} src/lockfile.c
-                            include/lockfile.h
-                            src/serialport.c
-                            include/serialport.h
-                            src/procutils.c
-                            include/procutils.h)
+add_library(${PROJECT_NAME} src/siot_lockfile.c
+        include/siot_lockfile.h
+        src/siot_serialport.c
+        include/siot_serialport.h
+        src/siot_procutils.c
+        include/siot_procutils.h)
 
 add_library(sub::lib1 ALIAS ${PROJECT_NAME})
 

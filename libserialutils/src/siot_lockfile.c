@@ -10,8 +10,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "lockfile.h"
-#include "procutils.h"
+#include "siot_lockfile.h"
+#include "siot_procutils.h"
 
 //#define VERBOSE_DEBUG
 
@@ -24,7 +24,7 @@ static const char * lockPrefix = "/var/lock/LCK..";
  * @param filepath Path to check. Uses system function stat()...
  * @return Zero if file exists, -1 if file does not exist.
  */
-static int exists(const char * filepath) {
+static int _exists(const char *filepath) {
     struct stat file_stat;
     int result = -1;
 
@@ -32,7 +32,7 @@ static int exists(const char * filepath) {
 
     if (stat(filepath, &file_stat) == 0) {
 #ifdef VERBOSE_DEBUG
-        fprintf(stderr, "%s file exists\n", filepath);
+        fprintf(stderr, "%s file _exists\n", filepath);
 #endif
         result = 0;
     }
@@ -40,7 +40,7 @@ static int exists(const char * filepath) {
     return result;
 }
 
-static pid_t get_lockfile_pid(const char * filepath) {
+static pid_t _get_lockfile_pid(const char *filepath) {
     FILE * lockFH = NULL;
     pid_t result = -1;
 
@@ -53,7 +53,7 @@ static pid_t get_lockfile_pid(const char * filepath) {
     return result;
 }
 
-static int create_lockfile(const char * lockfile_name) {
+static int _create_lockfile(const char *lockfile_name) {
     pid_t   pid = getpid(); // get process id
     FILE *  fh  = NULL;
     int     result = -1;
@@ -81,7 +81,7 @@ static int create_lockfile(const char * lockfile_name) {
  * @param lf_len        Max length of lockfile name buffer
  * @return              Pointer to lockfile name, or NULL on failure.
  */
-const char * get_lockfile_name(const char * filepath, char * lf_storage, size_t lf_len) {
+static const char * _get_lockfile_name(const char *filepath, char *lf_storage, size_t lf_len) {
     char * filename = NULL;
 
     filename = strrchr(filepath, '/');
@@ -111,29 +111,29 @@ const char * get_lockfile_name(const char * filepath, char * lf_storage, size_t 
  * @param filename
  * @return Zero on success, -1 on failure
  */
-int lock_filename(const char * filename) {
+int siot_lock_filename(const char *filename) {
     char lock_file_buffer[32];
     const char * lockfile_name = NULL;
     int result = -1;
 
-    lockfile_name = get_lockfile_name(filename, lock_file_buffer, 32);
+    lockfile_name = _get_lockfile_name(filename, lock_file_buffer, 32);
     if (lockfile_name != NULL) {
-        if (exists(lockfile_name) != 0) {
-            create_lockfile(lockfile_name);
+        if (_exists(lockfile_name) != 0) {
+            _create_lockfile(lockfile_name);
             result = 0;
         } else {
-            /* If lockfile exists, check if it is stale... */
-            pid_t owner_pid = get_lockfile_pid(lockfile_name);
+            /* If lockfile _exists, check if it is stale... */
+            pid_t owner_pid = _get_lockfile_pid(lockfile_name);
 
             /* If the process is not found assume the lock is stale... */
-            if (verify_process_id(owner_pid) != 0) {
+            if (siot_verify_process_id(owner_pid) != 0) {
                 fprintf(stderr, "Removing stale lock file...\n");
                 unlink(lockfile_name);
-                create_lockfile(lockfile_name);
+                _create_lockfile(lockfile_name);
                 result = 0;
             } else {
 #ifdef VERBOSE_DEBUG
-                fprintf(stderr, "LOCKFILE exists\n");
+                fprintf(stderr, "LOCKFILE _exists\n");
 #endif
             }
         }
@@ -148,14 +148,14 @@ int lock_filename(const char * filename) {
  * @param filename
  * @return
  */
-int unlock_filename(const char * filename) {
+int siot_unlock_filename(const char *filename) {
     char lock_file_buffer[32];
     const char *lockfile_name = NULL;
     int result = -1;
 
-    lockfile_name = get_lockfile_name(filename, lock_file_buffer, 32);
+    lockfile_name = _get_lockfile_name(filename, lock_file_buffer, 32);
     if (lockfile_name != NULL) {
-        if (exists(lockfile_name) == 0) {
+        if (_exists(lockfile_name) == 0) {
             if (unlink(lockfile_name) == 0) {
                 result = 0;
             }

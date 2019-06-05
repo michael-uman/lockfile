@@ -31,23 +31,22 @@ $> make
 The `lockfile.h` header exposes the following functions:
 
 ```
-const char *    get_lockfile_name(const char * filename, char * lf_storage, size_t lf_len);
-int             lock_filename(const char * filename);
-int             unlock_filename(const char * filename);
+int             siot_lock_filename(const char * filename);
+int             siot_unlock_filename(const char * filename);
 ```
 
 The `serialport.h` header exposes the following functions:
 
 ```
-int             serialport_open(const char *serial_device_name,
-                                int baud_rate, int * user_errno);
-int             serialport_close(int fdes, int * user_errno);
+int             siot_serialport_open(const char *serial_device_name,
+                                     int baud_rate, int * user_errno);
+int             siot_serialport_close(int fdes, int * user_errno);
 ```
 
 The `procutils.h` header exposes the following functions:
 
 ``` 
-int             verify_process_id(pid_t id);
+int             siot_verify_process_id(pid_t id);
 ```
 
 ## Example
@@ -62,7 +61,7 @@ See the `main.c` file for example usage.
 void test_serialport() {
     int serial_fd = -1;
 
-    if ((serial_fd = serialport_open(serialDevice, B115200, &myerrno)) != -1) {
+    if ((serial_fd = siot_serialport_open(serialDevice, B115200, &myerrno)) != -1) {
         printf("Serial port opened [115200 Baud 8N1]!\n");
 
         printf("Sending data to serial port...\n");
@@ -72,7 +71,7 @@ void test_serialport() {
             sleep(1);
         }
 
-        if (serialport_close(serial_fd, &myerrno) == 0) {
+        if (siot_serialport_close(serial_fd, &myerrno) == 0) {
             printf("Serial port closed!\n");
         } else {
             printf("Unable to close serial port [errno = %d (%s)]\n", myerrno, strerror(myerrno));

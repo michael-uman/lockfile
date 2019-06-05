@@ -15,8 +15,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "serialport.h"
-#include "lockfile.h"
+#include "siot_serialport.h"
+#include "siot_lockfile.h"
 
 //#define VERBOSE_DEBUG
 
@@ -37,7 +37,7 @@ static int      serial_port_fd      = -1;
  * @param errno                 Pointer to int where error code is stored.
  * @return                      File descriptor for serial port, or -1 on failure
  */
-int serialport_open(const char *serial_device_name, int baud_rate, int * user_errno) {
+int siot_serialport_open(const char *serial_device_name, int baud_rate, int *user_errno) {
     int serial_fd = -1;
 
     /* Fail if any passed value is NULL */
@@ -53,7 +53,7 @@ int serialport_open(const char *serial_device_name, int baud_rate, int * user_er
     }
 
     /* Check lock files status */
-    if (lock_filename(serial_device_name) != 0) {
+    if (siot_lock_filename(serial_device_name) != 0) {
         *user_errno = EAGAIN;
 #ifdef VERBOSE_DEBUG
         fprintf(stderr, "Serial device already open, lockfile exists\n");
@@ -113,11 +113,13 @@ int serialport_open(const char *serial_device_name, int baud_rate, int * user_er
 }
 
 /**
+ * Close the serialport and unlink the lockfile.
  *
  * @param handle
  * @return
  */
-int serialport_close(int fdes, int * user_errno) {
+int siot_serialport_close(int fdes, int *user_errno) {
+    /* Make sure the file descriptor is the same as the one used to open the port */
     if (fdes != serial_port_fd) {
 #ifdef VERBOSE_DEBUG
         fprintf(stderr, "Invalid handle, does not represent serialport opened with serialport_open()\n");
@@ -134,7 +136,7 @@ int serialport_close(int fdes, int * user_errno) {
         return -1;
     }
 
-    if (unlock_filename(serial_port_name) != 0) {
+    if (siot_unlock_filename(serial_port_name) != 0) {
         *user_errno = ENXIO;
 #ifdef VERBOSE_DEBUG
         fprintf(stderr, "Unable to unlock serial port\n");
