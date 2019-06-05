@@ -17,6 +17,15 @@ $> cmake ..
 $> make
 ```
 
+### Cross-compiling project
+
+```
+$> cd lockfile
+$> mkdir cmake-raspberrypi-release
+$> cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/raspberry-pi.cmake ..
+$> make
+```
+
 ## Functions
 
 The `lockfile.h` header exposes the following functions:
